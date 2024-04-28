@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Button from "./components/ui/Button";
 import ListItem from "./components/ui/ListItem";
 
@@ -10,8 +10,21 @@ type TaskType = {
 
 function App() {
     const [inputText, setInputText] = useState<string>("");
-    const [tasks, setTasks] = useState<TaskType[]>([]);
-    const [nextId, setNextId] = useState<number>(0);
+    // Initialize tasks from local storage, or default to an empty array
+    const [tasks, setTasks] = useState<TaskType[]>(() => {
+        const storedTasks = localStorage.getItem("tasks");
+        return storedTasks ? JSON.parse(storedTasks) : [];
+    });
+    const [nextId, setNextId] = useState<number>(() => {
+        const storedId = localStorage.getItem("nextId");
+        return storedId ? parseInt(storedId, 10) : 0;
+    });
+
+    useEffect(() => {
+        // Update local storage when tasks change
+        localStorage.setItem("tasks", JSON.stringify(tasks));
+        localStorage.setItem("nextId", nextId.toString());
+    }, [tasks, nextId]);
 
     const handleInputChange = (text: string) => {
         setInputText(text);
@@ -20,8 +33,8 @@ function App() {
     const addTask = () => {
         if (inputText.trim() !== "") {
             const newTask = { id: nextId, text: inputText, completed: false };
-            setTasks([...tasks, newTask]);
-            setNextId(nextId + 1);
+            setTasks((prevTasks) => [...prevTasks, newTask]);
+            setNextId((prevId) => prevId + 1);
             setInputText("");
         }
     };
